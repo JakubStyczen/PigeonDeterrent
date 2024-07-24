@@ -14,8 +14,13 @@ rpi-gpio = "^0.7.1"
 pymongo = "3.11.0"
 picamera = "^1.13"
 black = "^24.4.2"
+pigpio = "^1.78"
+mypy = "^1.11.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+ignore_missing_imports = true
