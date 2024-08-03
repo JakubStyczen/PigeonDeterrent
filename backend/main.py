@@ -3,10 +3,6 @@ import logging
 from app import App
 from config import Config
 
-HOST_IP: str = "192.168.1.60"
-PORT: int = 5000
-DEBUG: bool = True
-
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":

@@ -16,7 +16,8 @@ class Config:
             self.env.str("LOGGING_LEVEL", "INFO")
         )
         logging.basicConfig(
-            level=self.logging_level, format="[%(levelname)s]:  %(message)s"
+            level=self.logging_level,
+            format="[%(asctime)s][%(levelname)s]:  %(message)s",
         )
         self.logger = logging.getLogger(__name__)
 
@@ -28,4 +29,4 @@ class Config:
     def read_mongodb_variables(self) -> None:
         self.db_port: int = self.env.int("DB_PORT", 27017)
         self.db_host: str = self.env.str("DB_HOST_IP", "127.0.0.1")
-        self.db_password: str = self.env.bool("MONGODB_PASSWORD", "")
+        self.db_password: str = self.env.bool("DB_PASSWORD", "")
