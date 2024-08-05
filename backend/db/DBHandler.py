@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 import logging
 from DB import IDB, MongoDBColletion, IDataBaseRecord, DeterrentDataBaseRecord
 from pymongo.mongo_client import MongoClient
 from urllib.parse import quote_plus
 from datetime import datetime
-
-
-from bson.objectid import ObjectId
 
 logger = logging.getLogger()
 
@@ -19,6 +16,22 @@ class IDBHandler(ABC):
 
     @abstractmethod
     def disconnect(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def create_record(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def read_record(self, id: str | None) -> list[IDataBaseRecord] | None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_record(self, id: str, data: Any) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_record(self, id: str) -> None:
         raise NotImplementedError
 
 
@@ -37,7 +50,7 @@ class MongoDBHandler(IDBHandler):
         if self._db_client is not None:
             logger.warning("MongoDB already connected!")
             return None
-        credentials: tuple = (self.uri,) if self.uri else (self.ip, self.port)
+        credentials: str = self.uri if self.uri else f"mongodb://{self.ip}:{self.port}"
         self._db_client = MongoClient(*credentials)
         self._db_client.admin.command("ping")
         print("Pinged your deployment. You successfully connected to MongoDB!")
@@ -56,3 +69,33 @@ class MongoDBHandler(IDBHandler):
             return
         db = self._db_client.flask_database
         self._db = MongoDBColletion(db)
+
+    def create_record(
+        self, timestamp: datetime, sensors_interrupts: Dict[str, bool]
+    ) -> None:
+        data = DeterrentDataBaseRecord(timestamp, sensors_interrupts)
+        self._db.create(data)
+
+    def read_record(self, id: str | None) -> list[IDataBaseRecord] | None:
+        return self._db.read(id)
+
+    def read_all_record(self) -> list[IDataBaseRecord] | None:
+        return self._db.read()
+
+    def update_record(
+        self, id: str, timestamp: datetime, sensors_interrupts: Dict[str, bool]
+    ) -> None:
+        data = DeterrentDataBaseRecord(timestamp, sensors_interrupts)
+        self._db.update(id, data.to_modify())
+
+    def delete_record(self, id: str) -> None:
+        self._db.delete(id)
+
+
+mdb = MongoDBHandler(uri)
+mdb.create_db_collection()
+mdb._db.create(DeterrentDataBaseRecord(datetime.now(), {"kox": True}))
+print(mdb._db.read_all())
+# kox = DeterrentDataBaseRecord(datetime.now(), {"kox": False})
+# print(mdb._db.update("66ae81b40a767664f6a1c941", kox.to_modify()))
+# print(mdb._db.read_all())

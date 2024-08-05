@@ -60,12 +60,11 @@ class MongoDBColletion(IDB):
     def create(self, data: IDataBaseRecord) -> None:
         self._collection.insert_one(data.to_db_dict())
 
-    def read(self, id: str) -> IDataBaseRecord | None:
-        data: IDataBaseRecord = self._collection.find({"_id": ObjectId(id)})
-        return list(data)[0] if data is not None else None
-
-    def read_all(self) -> list[IDataBaseRecord] | None:
-        data: IDataBaseRecord = self._collection.find()
+    def read(self, id: str | None = None) -> list[IDataBaseRecord] | None:
+        if id is None:
+            data = self._collection.find()
+        else:
+            data = self._collection.find({"_id": ObjectId(id)})
         return list(data) if data is not None else None
 
     def delete(self, id: str) -> None:
