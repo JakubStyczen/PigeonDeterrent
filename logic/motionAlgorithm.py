@@ -7,9 +7,9 @@ from motionSensors import IMotionSensor, PIRSensor, CameraSensor
 logger = logging.getLogger(__name__)
 
 
-class IMotionDetectAlgorithm(ABC):
+class IMotionDetectionAlgorithm(ABC):
     pass
 
 
-class MotionDetectAlgorit(IMotionDetectAlgorithm):
+class MotionDetectionAlgorit(IMotionDetectionAlgorithm):
     pass
