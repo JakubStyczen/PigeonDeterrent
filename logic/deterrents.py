@@ -29,9 +29,13 @@ class ServoDeterrent(IDeterrent):
         self.move(0)
 
     def move(self, angle: int = 0) -> None:
+        if angle < 0 or angle > 180:
+            raise ValueError("Angle must be in range 0-180")
         self.servo.start(0)
-        # Accept angle in range 0-180
-        # TODO: Add info about mapping angle to duty value
+        # Steering servo by setting duty cycle from 2-12 (0-180 degrees)
+        # 2% duty cycle -> 0 degrees ~1ms pulse max right
+        # 8% duty cycle -> 90 degrees ~1,5ms pulse middle position
+        # 12% duty cycle -> 180 degrees ~2ms pulse max left
         duty_cycle_value: float = 2 + (angle / 18)
         try:
             time.sleep(0.1)

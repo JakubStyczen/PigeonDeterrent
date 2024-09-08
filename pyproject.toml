@@ -20,6 +20,7 @@ pytest = "^8.3.2"
 environs = "^11.0.0"
 pre-commit = "^3.8.0"
 numpy = "1.25"
+schedule = "^1.2.2"
 
 
 [build-system]

@@ -30,3 +30,10 @@ class Config:
         self.db_port: int = self.env.int("DB_PORT", 27017)
         self.db_host: str = self.env.str("DB_HOST_IP", "127.0.0.1")
         self.db_password: str = self.env.bool("DB_PASSWORD", "")
+
+    def read_hardware_variables(self) -> None:
+        self.pir_sensor_channel: int = self.env.int("PIR_SENSOR_CHANNEL", 12)
+        self.pir_debug_diode_channel: int = self.env.int("PIR_DEBUG_DIODE_CHANNEL", 40)
+        self.camera_frame_width: int = self.env.int("CAMERA_FRAME_WIDTH", 1280)
+        self.camera_frame_height: int = self.env.int("CAMERA_FRAME_HEIGHT", 720)
+        self.servo_channel: int = self.env.int("SERVO_CHANNEL", 32)
