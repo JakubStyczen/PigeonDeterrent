@@ -5,9 +5,6 @@ import time
 
 logger = logging.getLogger(__name__)
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
-
 
 class IDeterrent(ABC):
     @abstractmethod
@@ -17,6 +14,9 @@ class IDeterrent(ABC):
 
 class ServoDeterrent(IDeterrent):
     def __init__(self, channel: int, pwm_frequency: int = 50) -> None:
+        # Setup GPIO conf
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BOARD)
         self.channel = channel
         GPIO.setup(self.channel, GPIO.OUT)
         self.servo = GPIO.PWM(self.channel, pwm_frequency)
@@ -42,6 +42,8 @@ class ServoDeterrent(IDeterrent):
             self.servo.ChangeDutyCycle(duty_cycle_value)
             time.sleep(0.5)
             self.servo.ChangeDutyCycle(0)
-        finally:
+        except:
             self.servo.stop()
-            GPIO.cleanup()  # TODO: Check function and rebuild
+
+    def cleanup(self) -> None:
+        self.servo.stop()

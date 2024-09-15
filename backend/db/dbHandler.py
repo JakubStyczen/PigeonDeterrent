@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 import logging
-from DB import IDB, MongoDBColletion, IDataBaseRecord, DeterrentDataBaseRecord
 from pymongo.mongo_client import MongoClient
 from urllib.parse import quote_plus
 from datetime import datetime
 
-logger = logging.getLogger()
+from db.db import IDB, MongoDBColletion, IDataBaseRecord, DeterrentDataBaseRecord
+
+logger = logging.getLogger(__name__)
 
 
 class IDBHandler(ABC):
@@ -51,9 +52,8 @@ class MongoDBHandler(IDBHandler):
             logger.warning("MongoDB already connected!")
             return None
         credentials: str = self.uri if self.uri else f"mongodb://{self.ip}:{self.port}"
-        self._db_client = MongoClient(*credentials)
+        self._db_client = MongoClient(credentials)
         self._db_client.admin.command("ping")
-        print("Pinged your deployment. You successfully connected to MongoDB!")
         logger.info("Connecting to db!")
 
     def disconnect(self) -> None:
@@ -69,6 +69,7 @@ class MongoDBHandler(IDBHandler):
             return
         db = self._db_client.flask_database
         self._db = MongoDBColletion(db)
+        logger.debug("Created new MongoDB collection")
 
     def create_record(
         self, timestamp: datetime, sensors_interrupts: Dict[str, bool]
@@ -79,7 +80,7 @@ class MongoDBHandler(IDBHandler):
     def read_record(self, id: str | None) -> list[IDataBaseRecord] | None:
         return self._db.read(id)
 
-    def read_all_record(self) -> list[IDataBaseRecord] | None:
+    def read_all_records(self) -> list[IDataBaseRecord] | None:
         return self._db.read()
 
     def update_record(
@@ -90,12 +91,3 @@ class MongoDBHandler(IDBHandler):
 
     def delete_record(self, id: str) -> None:
         self._db.delete(id)
-
-
-mdb = MongoDBHandler(uri)
-mdb.create_db_collection()
-mdb._db.create(DeterrentDataBaseRecord(datetime.now(), {"kox": True}))
-print(mdb._db.read_all())
-# kox = DeterrentDataBaseRecord(datetime.now(), {"kox": False})
-# print(mdb._db.update("66ae81b40a767664f6a1c941", kox.to_modify()))
-# print(mdb._db.read_all())

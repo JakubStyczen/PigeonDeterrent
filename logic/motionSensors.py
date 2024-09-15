@@ -9,9 +9,6 @@ import numpy as np
 
 from logic.utils.imageProcessing import gaussian_kernel, convolve
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,11 +20,16 @@ class IMotionSensor(ABC):
 
 class PIRSensor(IMotionSensor):
     def __init__(self, channel: int, debug_diode_channel: int | None = None) -> None:
+        # Setup GPIO conf
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BOARD)
+
         self.channel = channel
         self.debug_diode_channel = debug_diode_channel
         GPIO.setup(self.channel, GPIO.IN)
-        GPIO.setup(self.debug_diode_channel, GPIO.OUT)
         if self.debug_diode_channel is not None:
+            logger.info("Started debug diode mode for PIR sensor in thread")
+            GPIO.setup(self.debug_diode_channel, GPIO.OUT)
             threading.Thread(target=self.debug_diode_logic, daemon=True).start()
 
     def is_motion_detected(self) -> bool:

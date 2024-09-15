@@ -25,11 +25,13 @@ class Config:
         self.port: int = self.env.int("PORT", 5000)
         self.host: str = self.env.str("HOST_IP", "127.0.0.1")
         self.debug: bool = self.env.bool("DEBUG", False)
+        self.logger.debug("Server variables env loaded")
 
     def read_mongodb_variables(self) -> None:
         self.db_port: int = self.env.int("DB_PORT", 27017)
         self.db_host: str = self.env.str("DB_HOST_IP", "127.0.0.1")
-        self.db_password: str = self.env.bool("DB_PASSWORD", "")
+        self.db_password: str = self.env.str("DB_PASSWORD", "")
+        self.logger.debug("MongoDB variables env loaded")
 
     def read_hardware_variables(self) -> None:
         self.pir_sensor_channel: int = self.env.int("PIR_SENSOR_CHANNEL", 12)
@@ -37,3 +39,8 @@ class Config:
         self.camera_frame_width: int = self.env.int("CAMERA_FRAME_WIDTH", 1280)
         self.camera_frame_height: int = self.env.int("CAMERA_FRAME_HEIGHT", 720)
         self.servo_channel: int = self.env.int("SERVO_CHANNEL", 32)
+        self.logger.debug("Hardware variables env loaded")
+
+    def read_algorithm_variables(self) -> None:
+        self.record_data_period: int = self.env.int("RECORD_DATA_PERIOD", 60)
+        self.logger.debug("Algorithm variables env loaded")
