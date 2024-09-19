@@ -11,6 +11,10 @@ from logic.utils.imageProcessing import gaussian_kernel, convolve
 
 logger = logging.getLogger(__name__)
 
+THRESHOLD = 30
+
+DETECTION_DIFF_THRESHOLD = 14 * 200 * 200 * 255
+
 
 class IMotionSensor(ABC):
     @abstractmethod
@@ -51,11 +55,32 @@ class CameraSensor(IMotionSensor):
         self.frame_width = frame_width
         self.frame_height = frame_height
         self.rotation = 180  # Default camera is upside down -> need rotation
-        self.current_frame: picamera.array.PiRGBArray | None = self.capture()
-        self.previous_frame: picamera.array.PiRGBArray | None = None
+        self.current_frame: np.array = self._init_frame()
+        self.previous_frame: np.array | None = None
+        logger.debug("init")
 
-    def is_motion_detected(self) -> bool:
-        time.sleep(0.5)
+    def _init_frame(self) -> np.array:
+        init_frame = self.capture()
+        # return self.gaussian_blur(self.rgb2gray(init_frame))
+        return self.rgb2gray(init_frame)
+
+    def is_motion_detected(
+        self, threshold_diff: int = DETECTION_DIFF_THRESHOLD
+    ) -> bool:
+        new_frame = self.capture()
+        self.previous_frame = self.current_frame
+        self.current_frame = self.rgb2gray(new_frame)
+        # self.current_frame = self.gaussian_blur(self.rgb2gray(new_frame))
+
+        frame_diff = np.abs(self.previous_frame - self.current_frame)
+
+        thresholded_diff = self.thresholding(frame_diff)
+
+        thresholded_diff_sum = thresholded_diff.sum()
+
+        if thresholded_diff_sum > DETECTION_DIFF_THRESHOLD:
+            logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
+            return True
         return False
 
     def capture(self) -> np.array:
@@ -66,7 +91,8 @@ class CameraSensor(IMotionSensor):
                 camera.capture(output, "rgb")
                 return output.array
 
-    def rgb2gray(self, frame: np.array) -> np.array:
+    @staticmethod
+    def rgb2gray(frame: np.array) -> np.array:
         if frame is None or frame.size == 0:
             return np.array([])
         if frame is not None and isinstance(frame, np.ndarray):
@@ -74,11 +100,16 @@ class CameraSensor(IMotionSensor):
             grayscale_image = frame @ coefficients
             return np.round(grayscale_image).astype(np.uint8)
 
+    @staticmethod
     def gaussian_blur(
-        self, frame: np.array, kernel_size: int = 5, kernel_sigma: float = 1
+        frame: np.array, kernel_size: int = 5, kernel_sigma: float = 1
     ) -> np.array:
         if frame is None or frame.size == 0:
             return np.array([])
         if frame is not None and isinstance(frame, np.ndarray):
             kernel = gaussian_kernel(kernel_size, kernel_sigma)
             return convolve(frame, kernel)
+
+    @staticmethod
+    def thresholding(frame_diff: np.array, threshold: int = THRESHOLD) -> np.array:
+        return np.where(frame_diff >= threshold, 255, 0)

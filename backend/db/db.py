@@ -28,7 +28,7 @@ class DeterrentDataBaseRecord(IDataBaseRecord):
         self.sensors_interrupts = sensors_interrupts
 
     def to_db_dict(self) -> DeterrentInfo:
-        return {"timestamp": self.timestamp, **self.sensors_interrupts}
+        return {"Time": self.timestamp, **self.sensors_interrupts}
 
     def to_modify(self) -> Dict[str, DeterrentInfo]:
         return {"$set": self.to_db_dict()}

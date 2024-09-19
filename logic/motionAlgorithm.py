@@ -91,6 +91,7 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
             sensor.__class__.__name__: sensor.is_motion_detected()
             for sensor in self.sensors_list
         }
+        logger.debug(f"Motion detection status: {sensors_state_list}")
         if any(sensors_state_list.values()):
             self.is_alarm_triggered = True
             self.time_of_motion_captuted = datetime.now()
@@ -101,13 +102,13 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
     def detection_alogrithm(self) -> None:
         while self.is_thread_running:
             self.update_is_motion_detected()
-            logger.debug(
-                f"Motion detection status: {self.time_of_motion_captuted=}, {self.sensors_interrupt_dict=}"
-            )
+            # logger.debug(
+            #     f"Motion detection status: {self.time_of_motion_captuted=}, {self.sensors_interrupt_dict=}"
+            # )
             if self.is_alarm_triggered:
                 for deterrent in self.deterrents_list:
                     deterrent.deter()
-                time.sleep(5)
+                time.sleep(2)
                 self.is_alarm_triggered = False
             time.sleep(2)
 

@@ -29,7 +29,7 @@ def main() -> None:
     except Exception as e:
         logger.error(e)
     finally:
-        # controller.stop_and_cleanup()
+        controller.stop_and_cleanup()
         pass
 
 
