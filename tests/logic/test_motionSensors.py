@@ -3,8 +3,12 @@ import time
 import sys
 import numpy as np
 
-from logic.motionSensors import PIRSensor, CameraSensor
 from backend.config import is_not_valid_config
+
+if is_not_valid_config():
+    pytest.skip("Skip tests which requires hardware", allow_module_level=True)
+
+from logic.motionSensors import PIRSensor, CameraSensor
 
 
 @pytest.mark.skipif(is_not_valid_config(), reason="Skip tests which requires hardware")
