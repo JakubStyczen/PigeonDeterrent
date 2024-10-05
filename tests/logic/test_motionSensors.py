@@ -3,15 +3,15 @@ import time
 import sys
 import numpy as np
 
-# sys.path.append("/home/jaksty/Materials/PigeonDeterrent/")
-
 from logic.motionSensors import PIRSensor, CameraSensor
+from backend.config import is_not_valid_config
 
 
+@pytest.mark.skipif(is_not_valid_config(), reason="Skip tests which requires hardware")
 class TestPIRSensor:
     def test_debug_diode_logic(self):
-        # pir_sensor = PIRSensor(12, 40)
-        # pir_sensor.debug_diode_logic()
+        pir_sensor = PIRSensor(12, 40)
+        pir_sensor.debug_diode_logic()
         pass
 
 
@@ -20,27 +20,28 @@ def camera_sensor():
     return CameraSensor()
 
 
+@pytest.mark.skipif(is_not_valid_config(), reason="Skip tests which requires hardware")
 class TestCameraSensor:
 
-    # def test_capture_default_frame_size(self, camera_sensor):
-    #     frame = camera_sensor.capture()
-    #     assert frame.shape == (720, 1280, 3)
+    def test_capture_default_frame_size(self, camera_sensor):
+        frame = camera_sensor.capture()
+        assert frame.shape == (720, 1280, 3)
 
-    # def test_capture_custom_frame_size(self):
-    #     camera_sensor = CameraSensor(640, 480)
-    #     frame = camera_sensor.capture()
-    #     assert frame.shape == (480, 640, 3)
+    def test_capture_custom_frame_size(self):
+        camera_sensor = CameraSensor(640, 480)
+        frame = camera_sensor.capture()
+        assert frame.shape == (480, 640, 3)
 
-    # def test_rgb2gray(self, camera_sensor):
-    #     # Test case 1: Test conversion of RGB image to grayscale
-    #     frame = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255]])
-    #     gray_frame = camera_sensor.rgb2gray(frame)
-    #     assert np.array_equal(gray_frame, np.array([76, 150, 29]))
+    def test_rgb2gray(self, camera_sensor):
+        # Test case 1: Test conversion of RGB image to grayscale
+        frame = np.array([[255, 0, 0], [0, 255, 0], [0, 0, 255]])
+        gray_frame = camera_sensor.rgb2gray(frame)
+        assert np.array_equal(gray_frame, np.array([76, 150, 29]))
 
-    #     # Test case 2: Test conversion of empty image
-    #     frame = np.array([])
-    #     gray_frame = camera_sensor.rgb2gray(frame)
-    #     assert np.array_equal(gray_frame, np.array([]))
+        # Test case 2: Test conversion of empty image
+        frame = np.array([])
+        gray_frame = camera_sensor.rgb2gray(frame)
+        assert np.array_equal(gray_frame, np.array([]))
 
     def test_gaussian_blur_default_kernel(self, camera_sensor):
         # Test case: Test Gaussian blur with default kernel size and sigma

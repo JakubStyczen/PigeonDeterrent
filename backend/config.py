@@ -4,6 +4,12 @@ from environs import Env
 from typing import Optional
 
 
+def is_not_valid_config() -> None:
+    env = Env()
+    env.read_env()
+    return env.bool("TEST_SKIP", True)
+
+
 class Config:
     def __init__(self) -> None:
         self.env = Env()
