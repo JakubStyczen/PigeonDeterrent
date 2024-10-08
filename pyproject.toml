@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "pigeondeterrent"
+version = "0.1.0"
+description = "Engineering project. Main goal is to detect motion on window ledge and deter birds like pigeon."
+authors = ["Jakub Styczen"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+flask = "^3.0.3"
+gpiozero = "^2.0.1"
+rpi-gpio = "^0.7.1"
+pymongo = "3.11.0"
+picamera = "^1.13"
+black = "^24.4.2"
+pigpio = "^1.78"
+mypy = "^1.11.0"
+pytest = "^8.3.2"
+environs = "^11.0.0"
+pre-commit = "^3.8.0"
+numpy = "1.25"
+schedule = "^1.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+ignore_missing_imports = true

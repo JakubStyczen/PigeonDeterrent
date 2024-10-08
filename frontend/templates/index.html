@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Command center</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    
+    <!-- Meta description for SEO -->
+    <meta name="description" content="Description of your website for SEO purposes.">
+    <meta name="keywords" content="HTML, CSS, JavaScript, Flask, Python">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+</head>
+<body>
+    <header>
+        <h1>Command center</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">Home page</a></li>
+            <li><a href="/pigeons_interrupt_records?limit=5">Pigeons interrupt records</a></li>
+            <li><a href="/template">Template</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Section -->
+    <main>
+        <div class="content">
+            {{ content|safe }}
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Command center by Jakub Styczen. All rights reserved.</p>
+    </footer>    
+</body>
+</html>
