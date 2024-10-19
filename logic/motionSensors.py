@@ -11,10 +11,6 @@ from logic.utils.imageProcessing import gaussian_kernel, convolve
 
 logger = logging.getLogger(__name__)
 
-THRESHOLD = 30
-
-DETECTION_DIFF_THRESHOLD = 14 * 200 * 200 * 255
-
 
 class IMotionSensor(ABC):
     @abstractmethod
@@ -58,15 +54,15 @@ class CameraSensor(IMotionSensor):
         self.current_frame: np.array = self._init_frame()
         self.previous_frame: np.array | None = None
         logger.debug("init")
+        self.THRESHOLD = 30
+        self.DETECTION_DIFF_THRESHOLD = 14 * 200 * 200 * 255
 
     def _init_frame(self) -> np.array:
         init_frame = self.capture()
         # return self.gaussian_blur(self.rgb2gray(init_frame))
         return self.rgb2gray(init_frame)
 
-    def is_motion_detected(
-        self, threshold_diff: int = DETECTION_DIFF_THRESHOLD
-    ) -> bool:
+    def is_motion_detected(self) -> bool:
         new_frame = self.capture()
         self.previous_frame = self.current_frame
         self.current_frame = self.rgb2gray(new_frame)
@@ -78,7 +74,7 @@ class CameraSensor(IMotionSensor):
 
         thresholded_diff_sum = thresholded_diff.sum()
 
-        if thresholded_diff_sum > DETECTION_DIFF_THRESHOLD:
+        if thresholded_diff_sum > self.DETECTION_DIFF_THRESHOLD:
             logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
             return True
         return False
@@ -110,6 +106,5 @@ class CameraSensor(IMotionSensor):
             kernel = gaussian_kernel(kernel_size, kernel_sigma)
             return convolve(frame, kernel)
 
-    @staticmethod
-    def thresholding(frame_diff: np.array, threshold: int = THRESHOLD) -> np.array:
-        return np.where(frame_diff >= threshold, 255, 0)
+    def thresholding(self, frame_diff: np.array) -> np.array:
+        return np.where(frame_diff >= self.THRESHOLD, 255, 0)

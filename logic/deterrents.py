@@ -20,7 +20,7 @@ class ServoDeterrent(IDeterrent):
         self.channel = channel
         GPIO.setup(self.channel, GPIO.OUT)
         self.servo = GPIO.PWM(self.channel, pwm_frequency)
-        self.move()
+        self.move(0)
 
     def deter(self) -> None:
         logger.info("Deterring by using moving object!")
@@ -28,7 +28,7 @@ class ServoDeterrent(IDeterrent):
         time.sleep(0.5)
         self.move(0)
 
-    def move(self, angle: int = 0) -> None:
+    def move(self, angle: int) -> None:
         if angle < 0 or angle > 180:
             raise ValueError("Angle must be in range 0-180")
         self.servo.start(0)

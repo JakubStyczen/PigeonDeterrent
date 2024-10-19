@@ -31,7 +31,7 @@ class IMotionDetectionAlgorithm(ABC):
         self.record_data_period = record_data_period
         self.is_alarm_triggered: bool = False
         self.is_data_recorded: bool = True
-        self.time_of_motion_captuted: datetime = datetime.now()
+        self.time_of_motion_captuted: datetime | None = datetime.now()
         self.sensors_interrupt_dict: str[str, bool] = {
             sensor.__class__.__name__: sensor.is_motion_detected()
             for sensor in self.sensors_list
@@ -60,9 +60,10 @@ class IMotionDetectionAlgorithm(ABC):
 class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.is_thread_running = True
+        self.is_detection_thread_running: bool = True
         self.lock = threading.RLock()
 
+        # Prepare scheduler to execute data capture periodicly
         schedule.every(self.record_data_period).seconds.do(self.capture_data)
 
     def start_recording(self) -> None:
@@ -70,6 +71,10 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
         threading.Thread(target=self.recording_wrapper, daemon=True).start()
 
     def recording_wrapper(self) -> None:
+        """
+        In separate thread controlled by self.is_data_recorded variable keeps alive scheduler
+        for properly execute self.capture_data method.
+        """
         while self.is_data_recorded:
             schedule.run_pending()
             time.sleep(1)
@@ -79,6 +84,8 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
             self.db_handler.create_record(
                 self.time_of_motion_captuted, self.sensors_interrupt_dict
             )
+            # After sending data to DB clear time to record new data
+            self.time_of_motion_captuted = None
         logger.debug(f"Data has been recorded")
 
     def stop_recording(self) -> None:
@@ -86,25 +93,35 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
         with self.lock:
             self.is_data_recorded = False
 
-    def update_is_motion_detected(self) -> None:
+    def update_time_and_sensors_status(self) -> None:
         sensors_state_list: dict[str, bool] = {
             sensor.__class__.__name__: sensor.is_motion_detected()
             for sensor in self.sensors_list
         }
         logger.debug(f"Motion detection status: {sensors_state_list}")
+
+        # Check if on any sensor where was a motion detected
         if any(sensors_state_list.values()):
             self.is_alarm_triggered = True
-            self.time_of_motion_captuted = datetime.now()
-            self.sensors_interrupt_dict = sensors_state_list
-            return
-        self.is_alarm_triggered = False
+        else:
+            self.is_alarm_triggered = False
 
-    def detection_alogrithm(self) -> None:
-        while self.is_thread_running:
-            self.update_is_motion_detected()
-            # logger.debug(
-            #     f"Motion detection status: {self.time_of_motion_captuted=}, {self.sensors_interrupt_dict=}"
-            # )
+        # if alarm has occured or data was send to DB (timestamp is empty) save data
+        if self.is_alarm_triggered or self.time_of_motion_captuted is None:
+            with self.lock:
+                self.time_of_motion_captuted = datetime.now()
+                self.sensors_interrupt_dict = sensors_state_list
+            return
+
+    def motion_detection_alogrithm_logic(self) -> None:
+        """
+        In separate thread controlled by self.is_detection_thread_running variable function is:
+        - updating time and interrupts status from every sensor
+        - checking alarm and uses all existing deterrents
+        - controling alarm status and propely delaying operations
+        """
+        while self.is_detection_thread_running:
+            self.update_time_and_sensors_status()
             if self.is_alarm_triggered:
                 for deterrent in self.deterrents_list:
                     deterrent.deter()
@@ -113,11 +130,13 @@ class MotionDetectionAlgoritm(IMotionDetectionAlgorithm):
             time.sleep(2)
 
     def start_detecting(self) -> None:
-        self.is_thread_running = True
+        self.is_detection_thread_running = True
         logger.info("Motion detection has been started")
-        threading.Thread(target=self.detection_alogrithm, daemon=True).start()
+        threading.Thread(
+            target=self.motion_detection_alogrithm_logic, daemon=True
+        ).start()
 
     def stop_detecting(self) -> None:
         logger.info("Motion detection has been stopped")
         with self.lock:
-            self.is_thread_running = False
+            self.is_detection_thread_running = False

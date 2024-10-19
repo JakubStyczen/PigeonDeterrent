@@ -30,7 +30,6 @@ def main() -> None:
         logger.error(e)
     finally:
         controller.stop_and_cleanup()
-        pass
 
 
 if __name__ == "__main__":
