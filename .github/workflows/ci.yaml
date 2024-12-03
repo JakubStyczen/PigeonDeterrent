@@ -28,11 +28,15 @@ jobs:
           echo "VIRTUAL ENV:" $VIRTUAL_ENV
           pip install -r requirements.txt
 
-      - name: Archive code coverage results
+      - name: Zip artifact for deployment
+        run: zip env.zip env/* -r
+
+      - name: Archive python env
         uses: actions/upload-artifact@v3
         with:
           name: env
-          path: env
+          path: env.zip
+
 
 
 
@@ -42,10 +46,13 @@ jobs:
     needs: setup-python
     continue-on-error: true
     steps:
-     - name: Download a single artifact
+     - name: Download python env
        uses: actions/download-artifact@v3
        with:
-         name: env
+         name: env.zip
+
+     - name: unzip artifact for deployment
+       run: unzip env.zip
 
      - name: Check out repository
        uses: actions/checkout@v4
@@ -56,7 +63,9 @@ jobs:
          python-version: ${{ needs.setup-python.outputs.python-version }}
      
      - name: Run pytest tests
-       run: python -B -m pytest
+       run: |
+         source env/bin/activate
+         python -B -m pytest
   
   black-format:
     name: Black formatting
