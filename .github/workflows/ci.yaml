@@ -22,11 +22,7 @@ jobs:
           python-version: '3.11.3'
 
       - name: Create venv and install packages
-        run: |
-          python3 -m venv env
-          source env/bin/activate
-          echo "VIRTUAL ENV:" $VIRTUAL_ENV
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
      
       - name: Run pytest tests
         run: python -B -m pytest
