@@ -11,9 +11,7 @@ from logic.utils.imageProcessing import gaussian_kernel, convolve
 
 logger = logging.getLogger(__name__)
 
-THRESHOLD = 30
-
-DETECTION_DIFF_THRESHOLD = 14 * 200 * 200 * 255
+LOGS_PATH = "/home/jaksty/Materials/PigeonDeterrent/logs"
 
 
 class IMotionSensor(ABC):
@@ -57,16 +55,16 @@ class CameraSensor(IMotionSensor):
         self.rotation = 180  # Default camera is upside down -> need rotation
         self.current_frame: np.array = self._init_frame()
         self.previous_frame: np.array | None = None
-        logger.debug("init")
+        self.THRESHOLD = 30
+        self.pixel_amount = frame_width * frame_height
+        self.DETECTION_DIFF_THRESHOLD = 120
 
     def _init_frame(self) -> np.array:
         init_frame = self.capture()
         # return self.gaussian_blur(self.rgb2gray(init_frame))
         return self.rgb2gray(init_frame)
 
-    def is_motion_detected(
-        self, threshold_diff: int = DETECTION_DIFF_THRESHOLD
-    ) -> bool:
+    def is_motion_detected(self) -> bool:
         new_frame = self.capture()
         self.previous_frame = self.current_frame
         self.current_frame = self.rgb2gray(new_frame)
@@ -76,10 +74,11 @@ class CameraSensor(IMotionSensor):
 
         thresholded_diff = self.thresholding(frame_diff)
 
-        thresholded_diff_sum = thresholded_diff.sum()
+        thresholded_diff_sum = frame_diff.sum() / frame_diff.size
 
-        if thresholded_diff_sum > DETECTION_DIFF_THRESHOLD:
-            logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
+        logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
+        if thresholded_diff_sum > self.DETECTION_DIFF_THRESHOLD:
+            self.capture_and_save_single_frame()
             return True
         return False
 
@@ -90,6 +89,10 @@ class CameraSensor(IMotionSensor):
             with picamera.array.PiRGBArray(camera) as output:
                 camera.capture(output, "rgb")
                 return output.array
+
+    def capture_and_save_single_frame(self) -> None:
+        with self.camera() as camera:
+            camera.capture(f"{LOGS_PATH}/foto-{str(int(time.time()))}.jpg")
 
     @staticmethod
     def rgb2gray(frame: np.array) -> np.array:
@@ -110,6 +113,5 @@ class CameraSensor(IMotionSensor):
             kernel = gaussian_kernel(kernel_size, kernel_sigma)
             return convolve(frame, kernel)
 
-    @staticmethod
-    def thresholding(frame_diff: np.array, threshold: int = THRESHOLD) -> np.array:
-        return np.where(frame_diff >= threshold, 255, 0)
+    def thresholding(self, frame_diff: np.array) -> np.array:
+        return np.where(frame_diff >= self.THRESHOLD, 255, 0)
