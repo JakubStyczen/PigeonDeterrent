@@ -23,6 +23,7 @@ numpy = "1.25"
 schedule = "^1.2.2"
 
 
+flask-restful = "^0.3.10"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

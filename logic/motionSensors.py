@@ -11,6 +11,8 @@ from logic.utils.imageProcessing import gaussian_kernel, convolve
 
 logger = logging.getLogger(__name__)
 
+LOGS_PATH = "/home/jaksty/Materials/PigeonDeterrent/logs"
+
 
 class IMotionSensor(ABC):
     @abstractmethod
@@ -53,9 +55,9 @@ class CameraSensor(IMotionSensor):
         self.rotation = 180  # Default camera is upside down -> need rotation
         self.current_frame: np.array = self._init_frame()
         self.previous_frame: np.array | None = None
-        logger.debug("init")
         self.THRESHOLD = 30
-        self.DETECTION_DIFF_THRESHOLD = 14 * 200 * 200 * 255
+        self.pixel_amount = frame_width * frame_height
+        self.DETECTION_DIFF_THRESHOLD = 120
 
     def _init_frame(self) -> np.array:
         init_frame = self.capture()
@@ -72,10 +74,11 @@ class CameraSensor(IMotionSensor):
 
         thresholded_diff = self.thresholding(frame_diff)
 
-        thresholded_diff_sum = thresholded_diff.sum()
+        thresholded_diff_sum = frame_diff.sum() / frame_diff.size
 
+        logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
         if thresholded_diff_sum > self.DETECTION_DIFF_THRESHOLD:
-            logger.debug(f"Frame threshold sum: {thresholded_diff_sum}")
+            self.capture_and_save_single_frame()
             return True
         return False
 
@@ -86,6 +89,10 @@ class CameraSensor(IMotionSensor):
             with picamera.array.PiRGBArray(camera) as output:
                 camera.capture(output, "rgb")
                 return output.array
+
+    def capture_and_save_single_frame(self) -> None:
+        with self.camera() as camera:
+            camera.capture(f"{LOGS_PATH}/foto-{str(int(time.time()))}.jpg")
 
     @staticmethod
     def rgb2gray(frame: np.array) -> np.array:
